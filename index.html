@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Soap Property Design Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./config.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <h1>Soap Property Design Tool</h1>
+        <p>
+          Choose up to three oils, set the total oil weight, lye, and water ratio, and the mixed
+          soap properties will update instantly with the same pass or fail cues used in the workbook.
+        </p>
+        <div class="hero-grid">
+          <article class="hero-card">
+            <strong>Workbook Logic</strong>
+            <span>
+              Recipe weights, NaOH or KOH demand, water amount, and blended soap-property scores
+              are calculated from the embedded <em>Soap Master</em> oil library.
+            </span>
+          </article>
+          <article class="hero-card">
+            <strong>Color Guidance</strong>
+            <span>
+              Green means the mixed value is on target, red means it misses the calculator's ideal
+              range, and amber rows are informational references.
+            </span>
+          </article>
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="panel">
+          <h2 class="section-title">Soap Inputs</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label for="totalOilWeight">Total Oil Weight (gm)</label>
+              <input id="totalOilWeight" type="number" min="0" step="0.1" value="100">
+            </div>
+            <div class="field">
+              <label for="lyeType">Lye</label>
+              <select id="lyeType">
+                <option value="NaOH" selected>NaOH</option>
+                <option value="KOH">KOH</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="waterLyeRatio">Water : Lye</label>
+              <input id="waterLyeRatio" type="number" min="0" step="0.01" value="2">
+            </div>
+            <div class="field">
+              <label>Default Spreadsheet Sample</label>
+              <input type="text" value="20% Coconut Oil, 76 deg + 80% Groundnut Oil" readonly>
+            </div>
+          </div>
+
+          <h2 class="section-title" style="margin-top: 1rem;">Recipe Builder</h2>
+          <div id="recipeRows" class="recipe-table"></div>
+
+          <div class="chip-row">
+            <div class="chip">Selected oils: <strong id="selectedOilCount">0</strong></div>
+            <div class="chip">Percentage total: <strong id="percentageTotal">0%</strong></div>
+          </div>
+
+          <div id="totalsWarning" class="totals-warning" hidden>
+            The Excel workbook assumes the oil percentages add up to 100%. Adjust the recipe until the
+            percentage total returns to 100% for the cleanest comparison.
+          </div>
+
+          <h2 class="section-title" style="margin-top: 1rem;">Soap Recipe</h2>
+          <div id="recipeSummary" class="recipe-summary"></div>
+        </div>
+
+        <div class="panel">
+          <h2 class="section-title">Soap Property</h2>
+          <div class="property-table-wrap">
+            <table class="property-table">
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Mix Soap Property</th>
+                  <th>Ideal Value</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="propertyTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top: 1.2rem;">
+        <h2 class="section-title">Soap Master Reference</h2>
+        <div class="section-toolbar">
+          <p class="section-note" id="referenceMeta">Loading approved oil records...</p>
+          <a class="btn btn-small" href="./admin-tools.html">Approval Section</a>
+        </div>
+        <p class="section-note">New oil submissions go into an admin approval queue before they appear in the public reference table.</p>
+
+        <div class="reference-toolbar">
+          <div class="search">
+            <label for="referenceSearch">Search Oil</label>
+            <input id="referenceSearch" type="search" placeholder="Start typing an oil name">
+          </div>
+          <div class="field">
+            <label for="referenceSort">Sort By</label>
+            <select id="referenceSort">
+              <option value="name">Name</option>
+              <option value="hardness">Hardness</option>
+              <option value="condition">Condition</option>
+              <option value="iodine">Iodine</option>
+              <option value="ins">INS</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-shell">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Oil</th>
+                <th>NaOH SAP</th>
+                <th>KOH SAP</th>
+                <th>Hardness</th>
+                <th>Cleansing</th>
+                <th>Condition</th>
+                <th>Bubbly</th>
+                <th>Creamy</th>
+                <th>Iodine</th>
+                <th>INS</th>
+                <th>Lauric</th>
+                <th>Myristic</th>
+                <th>Palmitic</th>
+                <th>Stearic</th>
+                <th>Ricinoleic</th>
+                <th>Oleic</th>
+                <th>Linoleic</th>
+                <th>Linolenic</th>
+                <th>Saturated</th>
+                <th>Unsaturated</th>
+              </tr>
+            </thead>
+            <tbody id="referenceTableBody"></tbody>
+          </table>
+        </div>
+        <div class="submission-panel">
+          <h3 class="subheading">Add New Oil Properties</h3>
+          <form id="submitOilForm" class="submission-form">
+            <div class="field-grid">
+              <div class="field">
+                <label for="submitOilName">Oil Name</label>
+                <input id="submitOilName" type="text" placeholder="Enter oil name" required>
+              </div>
+              <div class="field">
+                <label for="submitSubmittedBy">Submitted By</label>
+                <input id="submitSubmittedBy" type="text" placeholder="Name or team">
+              </div>
+              <div class="field">
+                <label for="submitNaohSap">NaOH SAP</label>
+                <input id="submitNaohSap" type="number" step="0.001" required>
+              </div>
+              <div class="field">
+                <label for="submitKohSap">KOH SAP</label>
+                <input id="submitKohSap" type="number" step="0.001" required>
+              </div>
+              <div class="field">
+                <label for="submitHardness">Hardness</label>
+                <input id="submitHardness" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitCleansing">Cleansing</label>
+                <input id="submitCleansing" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitCondition">Condition</label>
+                <input id="submitCondition" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitBubbly">Bubbly</label>
+                <input id="submitBubbly" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitCreamy">Creamy</label>
+                <input id="submitCreamy" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitIodine">Iodine</label>
+                <input id="submitIodine" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitIns">INS</label>
+                <input id="submitIns" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitLauric">Lauric</label>
+                <input id="submitLauric" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitMyristic">Myristic</label>
+                <input id="submitMyristic" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitPalmitic">Palmitic</label>
+                <input id="submitPalmitic" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitStearic">Stearic</label>
+                <input id="submitStearic" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitRicinoleic">Ricinoleic</label>
+                <input id="submitRicinoleic" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitOleic">Oleic</label>
+                <input id="submitOleic" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitLinoleic">Linoleic</label>
+                <input id="submitLinoleic" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitLinolenic">Linolenic</label>
+                <input id="submitLinolenic" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitSaturated">Saturated</label>
+                <input id="submitSaturated" type="number" step="0.1">
+              </div>
+              <div class="field">
+                <label for="submitUnsaturated">Unsaturated</label>
+                <input id="submitUnsaturated" type="number" step="0.1">
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-primary" type="submit">Submit For Approval</button>
+            </div>
+            <p class="admin-status" id="submitOilStatus"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script src="./soap-data.js"></script>
+    <script src="./supabase-store.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
