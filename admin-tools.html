@@ -55,6 +55,103 @@
           <h2 class="section-title">All Oil Records</h2>
           <p class="admin-helper" id="allOilsMeta">Sign in as admin to load all oil records.</p>
           <div class="admin-card-list" id="allOilsList"></div>
+
+          <div class="submission-panel" id="editOilPanel" hidden>
+            <h3 class="subheading" id="editOilTitle">Edit Oil Record</h3>
+            <form id="editOilForm" class="submission-form">
+              <div class="field-grid">
+                <div class="field">
+                  <label for="editOilName">Oil Name</label>
+                  <input id="editOilName" type="text" required>
+                </div>
+                <div class="field">
+                  <label for="editSubmittedBy">Submitted By</label>
+                  <input id="editSubmittedBy" type="text">
+                </div>
+                <div class="field">
+                  <label for="editNaohSap">NaOH SAP</label>
+                  <input id="editNaohSap" type="number" step="0.001" required>
+                </div>
+                <div class="field">
+                  <label for="editKohSap">KOH SAP</label>
+                  <input id="editKohSap" type="number" step="0.001" required>
+                </div>
+                <div class="field">
+                  <label for="editHardness">Hardness</label>
+                  <input id="editHardness" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editCleansing">Cleansing</label>
+                  <input id="editCleansing" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editCondition">Condition</label>
+                  <input id="editCondition" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editBubbly">Bubbly</label>
+                  <input id="editBubbly" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editCreamy">Creamy</label>
+                  <input id="editCreamy" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editIodine">Iodine</label>
+                  <input id="editIodine" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editIns">INS</label>
+                  <input id="editIns" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editLauric">Lauric</label>
+                  <input id="editLauric" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editMyristic">Myristic</label>
+                  <input id="editMyristic" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editPalmitic">Palmitic</label>
+                  <input id="editPalmitic" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editStearic">Stearic</label>
+                  <input id="editStearic" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editRicinoleic">Ricinoleic</label>
+                  <input id="editRicinoleic" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editOleic">Oleic</label>
+                  <input id="editOleic" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editLinoleic">Linoleic</label>
+                  <input id="editLinoleic" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editLinolenic">Linolenic</label>
+                  <input id="editLinolenic" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editSaturated">Saturated</label>
+                  <input id="editSaturated" type="number" step="0.1">
+                </div>
+                <div class="field">
+                  <label for="editUnsaturated">Unsaturated</label>
+                  <input id="editUnsaturated" type="number" step="0.1">
+                </div>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn-primary" type="submit">Save Changes</button>
+                <button class="btn btn-small" type="button" id="cancelEditButton">Cancel</button>
+              </div>
+              <p class="admin-status" id="editOilStatus"></p>
+            </form>
+          </div>
         </section>
       </main>
     </div>

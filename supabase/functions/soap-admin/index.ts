@@ -38,6 +38,57 @@ function requireString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function normalizeOptionalNumber(value: unknown) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    throw new Error("Oil property values must be valid numbers.");
+  }
+  return parsed;
+}
+
+function normalizeOilPayload(payload: unknown) {
+  const input = payload && typeof payload === "object" ? payload as Record<string, unknown> : {};
+  const oil = {
+    name: requireString(input.name),
+    submitted_by: requireString(input.submitted_by) || null,
+    naoh_sap: normalizeOptionalNumber(input.naoh_sap),
+    koh_sap: normalizeOptionalNumber(input.koh_sap),
+    hardness: normalizeOptionalNumber(input.hardness),
+    cleansing: normalizeOptionalNumber(input.cleansing),
+    condition: normalizeOptionalNumber(input.condition),
+    bubbly: normalizeOptionalNumber(input.bubbly),
+    creamy: normalizeOptionalNumber(input.creamy),
+    iodine: normalizeOptionalNumber(input.iodine),
+    ins: normalizeOptionalNumber(input.ins),
+    lauric: normalizeOptionalNumber(input.lauric),
+    myristic: normalizeOptionalNumber(input.myristic),
+    palmitic: normalizeOptionalNumber(input.palmitic),
+    stearic: normalizeOptionalNumber(input.stearic),
+    ricinoleic: normalizeOptionalNumber(input.ricinoleic),
+    oleic: normalizeOptionalNumber(input.oleic),
+    linoleic: normalizeOptionalNumber(input.linoleic),
+    linolenic: normalizeOptionalNumber(input.linolenic),
+    saturated: normalizeOptionalNumber(input.saturated),
+    unsaturated: normalizeOptionalNumber(input.unsaturated),
+  };
+
+  if (!oil.name) {
+    throw new Error("Oil name is required.");
+  }
+
+  if (oil.naoh_sap === null || oil.koh_sap === null) {
+    throw new Error("NaOH SAP and KOH SAP are required.");
+  }
+
+  return oil;
+}
+
 async function hashToken(token: string) {
   const bytes = new TextEncoder().encode(token);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -347,6 +398,37 @@ async function handleDeleteOil(token: string, oilId: string) {
   return jsonResponse({ ok: true });
 }
 
+async function handleUpdateOil(token: string, oilId: string, oilPayload: unknown) {
+  const session = await validateSession(token);
+
+  if (!session) {
+    return errorResponse("Invalid admin session.", 401);
+  }
+
+  let oil;
+
+  try {
+    oil = normalizeOilPayload(oilPayload);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Oil payload is invalid.";
+    return errorResponse(message, 400);
+  }
+
+  const { error } = await supabase
+    .from("soap_oils")
+    .update({
+      ...oil,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", oilId);
+
+  if (error) {
+    return errorResponse(`Oil could not be updated: ${error.message}`, 500);
+  }
+
+  return jsonResponse({ ok: true });
+}
+
 async function handleNotifyNewOil(oilName: string) {
   try {
     await sendOilNotification(oilName);
@@ -451,6 +533,7 @@ Deno.serve(async (request) => {
   const newPassword = requireString(body.newPassword);
   const oilId = requireString(body.oilId);
   const oilName = requireString(body.oilName);
+  const oil = body.oil;
 
   switch (action) {
     case "login":
@@ -467,6 +550,8 @@ Deno.serve(async (request) => {
       return await handleRejectOil(token, oilId);
     case "deleteOil":
       return await handleDeleteOil(token, oilId);
+    case "updateOil":
+      return await handleUpdateOil(token, oilId, oil);
     case "notifyNewOil":
       return await handleNotifyNewOil(oilName);
     case "changePassword":
