@@ -114,11 +114,8 @@ function setStatus(element, message, isError = false) {
 }
 
 function buildOilCatalog(approvedOils = []) {
-  const merged = new Map(baseOils.map((oil) => [oil.name.toLowerCase(), oil]));
-  approvedOils.forEach((oil) => {
-    merged.set(String(oil.name).toLowerCase(), oil);
-  });
-  oils = Array.from(merged.values()).sort((left, right) => left.name.localeCompare(right.name));
+  const catalog = approvedOils.length ? approvedOils : baseOils;
+  oils = [...catalog].sort((left, right) => left.name.localeCompare(right.name));
   oilLookup = new Map(oils.map((oil) => [oil.name, oil]));
 }
 
