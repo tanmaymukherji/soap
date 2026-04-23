@@ -5,6 +5,7 @@ const queueMeta = document.getElementById("queueMeta");
 const queueList = document.getElementById("queueList");
 const allOilsMeta = document.getElementById("allOilsMeta");
 const allOilsList = document.getElementById("allOilsList");
+const oilSearchInput = document.getElementById("oilSearch");
 const sessionPanel = document.getElementById("sessionPanel");
 const queuePanel = document.getElementById("queuePanel");
 const allOilsPanel = document.getElementById("allOilsPanel");
@@ -44,6 +45,14 @@ const OIL_FIELDS = [
 
 let allOilItems = [];
 let activeEditOilId = "";
+
+function getFilteredOilItems() {
+  const query = normalizeText(oilSearchInput?.value || "").toLowerCase();
+  if (!query) {
+    return allOilItems;
+  }
+  return allOilItems.filter((item) => String(item.name || "").toLowerCase().includes(query));
+}
 
 function normalizeText(value) {
   return (value || "").trim();
@@ -172,12 +181,13 @@ function renderQueue(items) {
 function renderAllOils(items) {
   allOilItems = items;
   allOilsList.innerHTML = "";
-  if (!items.length) {
+  const filteredItems = getFilteredOilItems();
+  if (!filteredItems.length) {
     allOilsList.innerHTML = '<article class="admin-card"><p>No oil records found.</p></article>';
     return;
   }
 
-  items.forEach((item) => {
+  filteredItems.forEach((item) => {
     const card = document.createElement("article");
     card.className = "admin-card";
     card.innerHTML = `
@@ -304,7 +314,10 @@ async function loadAllOils() {
   try {
     const data = await adminRequest("listAllOils", { token });
     const items = Array.isArray(data?.items) ? data.items : [];
-    allOilsMeta.textContent = `${items.length} oil record${items.length === 1 ? "" : "s"} found`;
+    const query = normalizeText(oilSearchInput?.value || "");
+    allOilsMeta.textContent = query
+      ? `${items.length} oil record${items.length === 1 ? "" : "s"} loaded, filtered by "${query}"`
+      : `${items.length} oil record${items.length === 1 ? "" : "s"} found`;
     renderAllOils(items);
   } catch (error) {
     allOilsMeta.textContent = error.message || "Oil records could not be loaded.";
@@ -448,6 +461,14 @@ signOutButton.addEventListener("click", async () => {
 refreshQueueButton.addEventListener("click", async () => {
   await loadPendingQueue();
   await loadAllOils();
+});
+
+oilSearchInput.addEventListener("input", () => {
+  renderAllOils(allOilItems);
+  const query = normalizeText(oilSearchInput.value);
+  allOilsMeta.textContent = query
+    ? `${allOilItems.length} oil records loaded, filtered by "${query}"`
+    : `${allOilItems.length} oil record${allOilItems.length === 1 ? "" : "s"} found`;
 });
 
 (async () => {
